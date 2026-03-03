@@ -1,208 +1,109 @@
-# Data Warehouse Project – Medallion Architecture (Bronze → Silver → Gold)
+# 🚀 SQL Data Warehouse Project
 
-## 📌 Project Overview
-
-This project implements a **SQL-based Data Warehouse** using the **Medallion Architecture**:
-
-* **Bronze Layer** → Raw data ingestion
-* **Silver Layer** → Cleaned and transformed data
-* **Gold Layer** → Business-ready star schema for analytics
-
-The solution integrates **CRM and ERP data sources**, applies data cleansing and transformations, and exposes a **star schema model** for reporting and BI tools.
+### Medallion Architecture | ETL | Dimensional Modeling | Analytics-Ready
 
 ---
 
-## 🏗 Architecture
+## 📌 Project Summary
 
-### 🥉 Bronze Layer
+Designed and implemented a **SQL-based Data Warehouse** using the **Medallion Architecture (Bronze → Silver → Gold)** to transform raw CRM and ERP data into an analytics-ready **star schema**.
 
-* Stores raw source data as-is
-* Minimal transformation
-* Used as a historical staging layer
+This project demonstrates hands-on experience in:
 
-### 🥈 Silver Layer
-
-* Cleansed and standardized data
-* Deduplication (latest customer records)
-* Data type corrections (dates, numeric fields)
-* Standardized values (gender, marital status, country)
-* Basic data quality handling (NULL fixes, recalculated sales)
-
-### 🥇 Gold Layer
-
-* Star schema design
-* Surrogate keys generated using `ROW_NUMBER()`
-* Optimized for reporting and analytics
+* Data modeling (Fact & Dimension design)
+* ETL development in T-SQL
+* Data cleansing & standardization
+* Surrogate key generation
+* Business logic implementation
+* Analytical data preparation
 
 ---
 
-## 📊 Data Model (Gold Layer)
+## 🏗 Architecture Overview
 
-### ⭐ `gold.dim_customers`
+### 🥉 Bronze Layer (Raw Data)
 
-Customer dimension combining CRM + ERP attributes.
+* Stores source CRM & ERP data
+* No transformation
+* Serves as ingestion/staging layer
 
-**Key features:**
+### 🥈 Silver Layer (Cleansed Data)
 
-* Surrogate key (`customer_key`)
-* Gender fallback logic (CRM → ERP)
-* Country enrichment
-* Birthdate from ERP
-* Business identifiers preserved
-
----
-
-### ⭐ `gold.dim_products`
-
-Product dimension enriched with category data.
-
-**Key features:**
-
-* Surrogate key (`product_key`)
-* Category + Subcategory mapping
-* Product line standardization
-* Historical filtering (`prd_end_dt IS NULL`)
-
----
-
-### ⭐ `gold.fact_sales`
-
-Sales fact table.
-
-**Measures:**
-
-* `sales_amount`
-* `quantity`
-* `price`
-
-**Foreign Keys:**
-
-* `customer_key`
-* `product_key`
-
-**Dates:**
-
-* Order date
-* Shipping date
-* Due date
-
----
-
-## 🔄 ETL Process
-
-### 1️⃣ Bronze → Silver
-
-Handled via stored procedure:
-
-```
-silver.load_silver
-```
-
-**Operations performed:**
-
-* Table truncation (full reload strategy)
 * Deduplication using `ROW_NUMBER()`
-* Value standardization using `CASE`
-* Date validation & conversion
-* Sales recalculation when inconsistent
-* Data quality fixes
+* Data standardization (gender, marital status, country)
+* Date validation and conversion
+* Sales recalculation for inconsistent records
+* NULL handling and fallback logic
+* Full reload strategy (`TRUNCATE + INSERT`)
+
+Implemented via:
+
+```sql
+EXEC silver.load_silver;
+```
 
 ---
 
-### 2️⃣ Silver → Gold
+### 🥇 Gold Layer (Business Model)
 
-Implemented using SQL `VIEW`s:
+Implemented as **star schema views**:
 
 * `gold.dim_customers`
 * `gold.dim_products`
 * `gold.fact_sales`
 
-Gold layer does not store data physically — it serves analytical queries.
+Optimized for BI tools and reporting queries.
 
 ---
 
-## 🧱 Schema Structure
+## 📊 Data Model
 
-```
-bronze
-silver
-gold
-```
+### ⭐ Fact Table
 
-Each layer is logically separated for clarity and maintainability.
+**`gold.fact_sales`**
+
+* Sales Amount
+* Quantity
+* Price
+* Order / Shipping / Due Dates
+* Foreign Keys to Customers & Products
+
+### ⭐ Dimensions
+
+**Customers**
+
+* Surrogate key
+* CRM + ERP enrichment
+* Gender fallback logic
+* Country standardization
+* Birthdate integration
+
+**Products**
+
+* Category & Subcategory mapping
+* Product line standardization
+* Historical filtering (active products only)
 
 ---
 
-## 📌 Design Decisions
+## 🔎 Key Technical Highlights
 
-* **Full reload strategy** in Silver (TRUNCATE + INSERT)
-* **Surrogate keys generated in views**
-* **LEFT JOINs** to avoid data loss
-* **Audit column** (`dwh_create_date`) in Silver tables
-* **Historical product handling** via end-date logic
+* Built a **modular ETL pipeline** using stored procedures
+* Implemented **data quality validation rules**
+* Designed a **star schema for analytical workloads**
+* Generated surrogate keys using window functions
+* Applied business transformation rules in Silver layer
+* Created audit tracking column (`dwh_create_date`)
+* Used LEFT JOIN strategy to preserve referential completeness
 
 ---
 
-## 🛠 Technologies Used
+## 🛠 Tech Stack
 
 * Microsoft SQL Server
-* T-SQL (Stored Procedures, Views, Window Functions)
+* T-SQL
+* Window Functions
+* Stored Procedures
+* Views
 * Star Schema Modeling
 * Medallion Architecture
-
----
-
-## 🚀 How to Run
-
-1. Create schemas: `bronze`, `silver`, `gold`
-2. Load raw data into Bronze tables
-3. Execute:
-
-   ```sql
-   EXEC silver.load_silver;
-   ```
-4. Query Gold views:
-
-   ```sql
-   SELECT * FROM gold.fact_sales;
-   ```
-
----
-
-## 📈 Use Cases
-
-* Sales performance analysis
-* Customer segmentation
-* Product category analysis
-* BI dashboards (Power BI / Tableau)
-* KPI reporting
-
----
-
-## 🔮 Possible Improvements
-
-* Add incremental loading strategy
-* Add indexes on foreign keys
-* Implement SCD Type 2 for customers/products
-* Add data validation logging
-* Implement automated scheduling (SQL Agent)
-
----
-
-## 👨‍💻 Author
-
-Data Warehouse project demonstrating:
-
-* ETL design
-* Data cleansing
-* Dimensional modeling
-* SQL performance patterns
-* Production-style structure
-
----
-
-If you'd like, I can also generate:
-
-* A **short GitHub version**
-* A **more technical enterprise-style version**
-* Or a **portfolio-optimized version for recruiters**
